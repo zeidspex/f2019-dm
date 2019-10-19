@@ -3,7 +3,24 @@ import json
 import tarfile
 import numpy as np
 import keras as ks
-import sklearn.model_selection as ms
+import tensorflow as tf
+import sklearn.model_selection as model_selection
+
+
+#%%
+# Set allow_growth to true to avoid memory hogging
+ks.backend.tensorflow_backend.set_session(
+    tf.Session(config=tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True)))
+)
+
+
+#%%
+data_path = r''
+batch_size = 64
+epochs = 100
+patience = 20
+seed = 66
+learn_rate = 0.0001
 
 
 #%%
@@ -14,12 +31,9 @@ def data_generator(split, n_batches):
             yield (lambda x: (x, x))(np.load('data/x_%s_%s.npy' % (split, i)) / 255)
 
 
-#%%
-data_path = r''
-batch_size = 64
-epochs = 250
-patience = 20
-seed = 66
+def lr_scheduler(epoch):
+    return learn_rate / (2**(epoch // patience))
+
 
 #%%
 # Load data from tar file
@@ -29,7 +43,7 @@ data_file = tarfile.open(data_path, 'r:gz')
 x_train = data_file.extractfile('stl10_binary/unlabeled_X.bin').read()
 x_train = np.frombuffer(x_train, dtype=np.uint8).reshape((-1, 3, 96, 96))
 x_train = np.transpose(x_train, (0, 3, 2, 1))
-x_train, x_val = ms.train_test_split(x_train, test_size=0.2, random_state=seed)
+x_train, x_val = model_selection.train_test_split(x_train, test_size=0.2, random_state=seed)
 
 #%%
 # Prepare batches and save them to the hard drive
@@ -75,7 +89,7 @@ for n_filters in list(128 // 2 ** np.array(range(4))) + [3]:
 # Create and build the model from layers, print model info
 model = ks.models.Sequential(layers)
 model.compile(
-    optimizer=ks.optimizers.Adam(lr=0.0001),
+    optimizer=ks.optimizers.Adam(lr=learn_rate),
     loss=ks.losses.mean_squared_error
 )
 model.summary()
@@ -102,8 +116,8 @@ history = model.fit_generator(
         ks.callbacks.EarlyStopping(
             monitor='val_loss', min_delta=0, patience=patience,
             verbose=0, mode='auto'
-        )
-
+        ),
+        ks.callbacks.LearningRateScheduler(lr_scheduler)
     ]
 )
 
