@@ -7,7 +7,6 @@ import tensorflow as tf
 import sklearn.model_selection as model_selection
 
 
-#%%
 # Set allow_growth to true to avoid memory hogging
 ks.backend.tensorflow_backend.set_session(
     tf.Session(config=tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True)))
@@ -23,7 +22,6 @@ seed = 66
 learn_rate = 0.0001
 
 
-#%%
 # Generator used to retrieve data
 def data_generator(split, n_batches):
     while True:
