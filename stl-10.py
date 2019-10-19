@@ -64,23 +64,23 @@ del x_train, x_val
 layers = [ks.layers.InputLayer(input_shape=(96, 96, 3))]
 
 # Convolutional layers (5 x (Conv + Max Pool))
-for n_filters in 8 * 2 ** np.array(range(5)):
+for n_filters in 32 * 2 ** np.array(range(5)):
     layers.append(ks.layers.Conv2D(
         filters=n_filters, kernel_size=(3, 3),
-        activation='relu', padding='same'
+        activation='relu', padding='same',
     ))
     layers.append(ks.layers.MaxPooling2D(pool_size=(2, 2)))
 
 # Dense layers
 layers += [
     ks.layers.Flatten(),
-    ks.layers.Dense(128),
-    ks.layers.Dense(1152),
-    ks.layers.Reshape((3, 3, 128))
+    ks.layers.Dense(1024),
+    ks.layers.Dense(4608),
+    ks.layers.Reshape((3, 3, 512))
 ]
 
 # Deconvolutional layers (4 x Deconv + 1 x Deconv with 3 filters for the last layer)
-for n_filters in list(128 // 2 ** np.array(range(4))) + [3]:
+for n_filters in list(512 // 2 ** np.array(range(4))) + [3]:
     layers.append(ks.layers.Deconv2D(
         filters=n_filters, kernel_size=(3, 3),
         activation='relu', padding='same', strides=(2, 2)
