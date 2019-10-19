@@ -16,7 +16,7 @@ ks.backend.tensorflow_backend.set_session(
 
 #%%
 data_path = r''
-batch_size = 64
+batch_size = 32
 epochs = 100
 patience = 20
 seed = 66
