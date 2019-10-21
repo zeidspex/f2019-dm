@@ -13,8 +13,6 @@ ks.backend.tensorflow_backend.set_session(
     tf.Session(config=tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True)))
 )
 
-
-#%%
 data_path = r''
 batch_size = 32
 epochs = 100
