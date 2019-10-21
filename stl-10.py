@@ -1,11 +1,12 @@
 #%%
+import re
+import h5py
 import json
 import tarfile
 import numpy as np
 import keras as ks
 import tensorflow as tf
 import sklearn.model_selection as model_selection
-
 
 # Set allow_growth to true to avoid memory hogging
 ks.backend.tensorflow_backend.set_session(
@@ -21,41 +22,40 @@ patience = 20
 seed = 66
 learn_rate = 0.0001
 
-
-# Generator used to retrieve data
-def data_generator(split, n_batches):
-    while True:
-        for i in range(n_batches):
-            yield (lambda x: (x, x))(np.load('data/x_%s_%s.npy' % (split, i)) / 255)
-
-
-def lr_scheduler(epoch):
-    return learn_rate / (2**(epoch // patience))
-
-
 #%%
-# Load data from tar file
-# Parse it using Numpy and convert it to 96x96x3
-# Split data into training and validation sets
-data_file = tarfile.open(data_path, 'r:gz')
-x_train = data_file.extractfile('stl10_binary/unlabeled_X.bin').read()
-x_train = np.frombuffer(x_train, dtype=np.uint8).reshape((-1, 3, 96, 96))
-x_train = np.transpose(x_train, (0, 3, 2, 1))
-x_train, x_val = model_selection.train_test_split(x_train, test_size=0.2, random_state=seed)
+# Read data from tar file and store it in a dictionary
+with tarfile.open(data_path, 'r:gz') as in_file:
+    data = {
+        re.match('.*/(.*)\\..*', name).groups()[0]: np.frombuffer(
+            in_file.extractfile(name).read(), dtype=np.uint8
+        )
+        for name in in_file.getnames()[1:]
+    }
 
-#%%
-# Prepare batches and save them to the hard drive
-for data, split in zip([x_train, x_val], ['train', 'val']):
-    n_batches = int(np.ceil(data.shape[0] / batch_size))
+# Reshape features to 96x96x3 and normalize them
+for name in ['unlabeled_X', 'train_X', 'test_X']:
+    data[name] = data[name]\
+       .reshape((-1, 3, 96, 96)).transpose((0, 3, 2, 1)).astype('float16') / 255
 
-    with open('data/%s_meta.txt' % split, 'w') as file:
-        file.write(str(n_batches))
+# Split unlabeled data into training and validation sets
+ux_train, ux_val = model_selection.train_test_split(
+    data['unlabeled_X'], test_size=0.2, random_state=seed
+)
 
-    for i in range(int(np.ceil(data.shape[0] / batch_size))):
-        np.save('data/x_%s_%s' % (split, i), data[i * batch_size:(i + 1) * batch_size])
+# Store prepared data in HDF5 file
+# Rename train_X to x_train, and etc.
+with h5py.File('data/stl-10.hdf5', 'w') as out_file:
+    out_file['seed'] = seed
+    out_file['class_names'] = data['class_names']
+    out_file['ux_train'] = ux_train
+    out_file['ux_val'] = ux_val
 
-# Free the memory
-del x_train, x_val
+    for name in ['train_X', 'train_y', 'test_X', 'test_y']:
+        new_name = (lambda x: '_'.join([y.lower() for y in x.split('_')[::-1]]))(name)
+        out_file[new_name] = data[name]
+
+# Clear the memory
+del ux_train, ux_val, data
 
 #%%
 # Input layer
@@ -93,32 +93,28 @@ model.compile(
 model.summary()
 
 #%%
-# Read number of batches for training and validation sets
-n_batches = {}
-
-for split in ['train', 'val']:
-    with open('data/%s_meta.txt' % split) as file:
-        n_batches[split] = int(file.read())
-
 # Train model
-history = model.fit_generator(
-    generator=data_generator('train', n_batches['train']),
-    validation_data=data_generator('val', n_batches['val']),
-    steps_per_epoch=n_batches['train'], validation_steps=n_batches['val'],
-    epochs=epochs, verbose=1,
-    callbacks=[
-        ks.callbacks.ModelCheckpoint(
-            filepath='models/model_{epoch:04d}-{val_loss:.5f}.hdf5', monitor='val_loss',
-            verbose=0, save_best_only=False, save_weights_only=False, mode='auto', period=5
-        ),
-        ks.callbacks.EarlyStopping(
-            monitor='val_loss', min_delta=0, patience=patience,
-            verbose=0, mode='auto'
-        ),
-        ks.callbacks.LearningRateScheduler(lr_scheduler)
-    ]
-)
+with h5py.File('data/stl-10.hdf5', 'r') as data_file:
+    history = model.fit(
+        data_file['ux_train'], data_file['ux_train'],
+        validation_data=(data_file['ux_val'], data_file['ux_val']),
+        epochs=epochs, verbose=1,
+        batch_size=batch_size, shuffle='batch',
+        callbacks=[
+            ks.callbacks.ModelCheckpoint(
+                filepath='models/model_{epoch:04d}-{val_loss:.5f}.hdf5', monitor='val_loss',
+                verbose=0, save_best_only=False, save_weights_only=False, mode='auto', period=5
+            ),
+            ks.callbacks.EarlyStopping(
+                monitor='val_loss', min_delta=0, patience=patience,
+                verbose=0, mode='auto'
+            ),
+            ks.callbacks.LearningRateScheduler(
+                (lambda epoch: learn_rate / (2**(epoch // patience)))
+            )
+        ]
+    )
 
-# Save history
-with open('models/history.json', 'w') as file:
-    file.write(json.dumps(history.history, indent=4))
+    # Save history
+    with open('models/history.json', 'w') as hist_file:
+        hist_file.write(json.dumps(history.history, indent=4))
