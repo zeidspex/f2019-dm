@@ -4,7 +4,7 @@ import numpy as np
 import scipy.special as sks
 
 
-def csprob(ps, n, i=1, ks=np.array([]).astype('int')):
+def csprob(ps, n, i=0, ks=np.array([]).astype('int')):
     """
     :param ps: distribution of classes in the cluster
     :param n: sample size
@@ -17,12 +17,12 @@ def csprob(ps, n, i=1, ks=np.array([]).astype('int')):
     """
     assert (math.isclose(sum(ps), 1) and len(ps) == 10 and n >= 1)
 
-    if i == 1:
+    if i == 0:
         rng = range(int(np.ceil(n / 10)), n + 1)
-    elif i < 10:
-        rng = range(0, min(ks[0], n - sum(ks[0:i])) + 1)
+    elif i < 9:
+        rng = range(0, min(ks[0], n - sum(ks)) + 1)
     else:
-        rng = range((n - sum(ks[0:9])), min(ks[0], n - sum(ks[0:9])) + 1)
+        rng = range((n - sum(ks)), min(ks[0], n - sum(ks)) + 1)
 
     if i < 10:
         return np.sum([csprob(ps, n, i + 1, np.concatenate((ks, np.array([k])))) for k in rng])
