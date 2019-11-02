@@ -35,6 +35,6 @@ def map_clusters(labels):
     while labels:
         labels.sort(key=lambda x: np.max(np.bincount(x[1])))
         true, predicted = labels.pop()
-        mappings[int(true)] = int(np.argmax(np.bincount(predicted)))
+        mappings[int(true)] = int(np.argmax(np.bincount(predicted, minlength=11)))
 
     return mappings
