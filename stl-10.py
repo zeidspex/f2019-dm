@@ -5,23 +5,29 @@ import json
 import random
 import tarfile
 import itertools
+import clustering
+import visualization
+import classification
 import numpy as np
 import keras as ks
 import tensorflow as tf
 import sklearn.model_selection as model_selection
 
+#%%
 # Set allow_growth to true to avoid memory hogging
 ks.backend.tensorflow_backend.set_session(
     tf.Session(config=tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True)))
 )
 
 data_path = r''
+model_path = r''
 batch_size = 32
 epochs = 100
 patience = 20
 seed = 66
 learn_rate = 0.0001
 val_size = 0.2
+sample_size = 30
 
 #%%
 ####################################################################################################
@@ -138,3 +144,60 @@ with h5py.File('data/stl-10.hdf5', 'r') as data_file:
     # Save history
     with open('models/history.json', 'w') as hist_file:
         hist_file.write(json.dumps(history.history, indent=4))
+
+####################################################################################################
+# Create classifier
+####################################################################################################
+
+#%%
+with h5py.File('data/stl-10.hdf5', 'r') as in_file:
+
+    # Create embedding model
+    model = ks.models.load_model(model_path)
+    embedding_model = ks.models.Model(inputs=model.inputs, outputs=model.layers[13].output)
+
+    # Train K-means model
+    x_train, y_train = np.array(in_file['x_train']), np.array(in_file['y_train'])
+    z_train = embedding_model.predict(x_train)
+    kmeans = clustering.cluster_data(z_train)
+    labels = clustering.create_samples(y_train, kmeans.labels_, sample_size)
+    mappings = clustering.map_clusters(labels, True)
+
+    # Create and save classifier from embeddings model and K-means model
+    clf = classification.Classifier(embedding_model, kmeans, mappings)
+    classification.save_model(clf, 'clf.tar')
+
+####################################################################################################
+# Test classifier
+####################################################################################################
+
+with h5py.File('data/stl-10.hdf5', 'r') as in_file:
+
+    # Load classifier
+    clf = classification.load_model('clf.tar')
+    x_test, y_test = np.array(in_file['x_test']), np.array(in_file['y_test'])
+    yp_test = clf.predict(x_test)
+    accuracies = []
+
+    # Compute accuracies for each class
+    for i in range(1, 11):
+        indices = np.argwhere(y_test == i)
+        accuracy = np.sum(yp_test[indices] == y_test[indices]) / len(y_test[indices])
+        accuracies.append(accuracy)
+
+    print(np.array(accuracies), np.mean(accuracies))
+
+####################################################################################################
+# Visualize results
+####################################################################################################
+
+with h5py.File('data/stl-10.hdf5', 'r') as in_file:
+    images = []
+    x_train, y_train = np.array(in_file['x_train']), np.array(in_file['y_train'])
+
+    for i in range(1, 11):
+        img = x_train[np.argwhere(y_train == i)][2]
+        img = (img * 255).astype('uint8').reshape((96, 96, 3))
+        images.append(img)
+
+visualization.visualize_confusion_matrix(images, y_test, yp_test, 'figure.png')
