@@ -19,8 +19,10 @@ ks.backend.tensorflow_backend.set_session(
     tf.Session(config=tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True)))
 )
 
-data_path = r''
-model_path = r''
+data_path = ''
+preprocessed_data_path = ''
+model_path = ''
+classifier_path = ''
 batch_size = 32
 epochs = 100
 patience = 20
@@ -55,7 +57,7 @@ ux_train, ux_val = model_selection.train_test_split(
 
 # Store prepared data in HDF5 file
 # Rename train_X to x_train, and etc.
-with h5py.File('data/stl-10.hdf5', 'w') as out_file:
+with h5py.File(preprocessed_data_path, 'w') as out_file:
     out_file['seed'] = seed
     out_file['class_names'] = data['class_names']
     out_file['ux_train'] = ux_train
@@ -113,7 +115,7 @@ model.summary()
 ####################################################################################################
 
 # Train model
-with h5py.File('data/stl-10.hdf5', 'r') as data_file:
+with h5py.File(preprocessed_data_path, 'r') as data_file:
     def data_generator(data, n_batches, batch_size):
         while True:
             for i in random.sample(range(n_batches), n_batches):
@@ -150,7 +152,7 @@ with h5py.File('data/stl-10.hdf5', 'r') as data_file:
 ####################################################################################################
 
 #%%
-with h5py.File('data/stl-10.hdf5', 'r') as in_file:
+with h5py.File(preprocessed_data_path, 'r') as in_file:
 
     # Create embedding model
     model = ks.models.load_model(model_path)
@@ -165,16 +167,16 @@ with h5py.File('data/stl-10.hdf5', 'r') as in_file:
 
     # Create and save classifier from embeddings model and K-means model
     clf = classification.Classifier(embedding_model, kmeans, mappings)
-    classification.save_model(clf, 'clf.tar')
+    classification.save_model(clf, classifier_path)
 
 ####################################################################################################
 # Test classifier
 ####################################################################################################
 
-with h5py.File('data/stl-10.hdf5', 'r') as in_file:
+with h5py.File(preprocessed_data_path, 'r') as in_file:
 
     # Load classifier
-    clf = classification.load_model('clf.tar')
+    clf = classification.load_model(classifier_path)
     x_test, y_test = np.array(in_file['x_test']), np.array(in_file['y_test'])
     yp_test = clf.predict(x_test)
     accuracies = []
@@ -191,7 +193,7 @@ with h5py.File('data/stl-10.hdf5', 'r') as in_file:
 # Visualize results
 ####################################################################################################
 
-with h5py.File('data/stl-10.hdf5', 'r') as in_file:
+with h5py.File(preprocessed_data_path, 'r') as in_file:
     images = []
     x_train, y_train = np.array(in_file['x_train']), np.array(in_file['y_train'])
 
