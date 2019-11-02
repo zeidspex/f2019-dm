@@ -2,7 +2,9 @@
 import re
 import h5py
 import json
+import random
 import tarfile
+import itertools
 import numpy as np
 import keras as ks
 import tensorflow as tf
@@ -19,6 +21,7 @@ epochs = 100
 patience = 20
 seed = 66
 learn_rate = 0.0001
+val_size = 0.2
 
 #%%
 ####################################################################################################
@@ -41,7 +44,7 @@ for name in ['unlabeled_X', 'train_X', 'test_X']:
 
 # Split unlabeled data into training and validation sets
 ux_train, ux_val = model_selection.train_test_split(
-    data['unlabeled_X'], test_size=0.2, random_state=seed
+    data['unlabeled_X'], test_size=val_size, random_state=seed
 )
 
 # Store prepared data in HDF5 file
@@ -105,11 +108,18 @@ model.summary()
 
 # Train model
 with h5py.File('data/stl-10.hdf5', 'r') as data_file:
-    history = model.fit(
-        data_file['ux_train'], data_file['ux_train'],
-        validation_data=(data_file['ux_val'], data_file['ux_val']),
+    def data_generator(data, n_batches, batch_size):
+        while True:
+            for i in random.sample(range(n_batches), n_batches):
+                yield tuple(itertools.repeat(data[i * batch_size:(i + 1) * batch_size], 2))
+
+    train_batches = int(np.ceil(10**5 * (1 - val_size) / batch_size))
+    val_batches = int(np.ceil(10**5 * val_size / batch_size))
+    history = model.fit_generator(
+        generator=data_generator(data_file['ux_train'], train_batches, batch_size),
+        validation_data=data_generator(data_file['ux_val'], val_batches, batch_size),
+        steps_per_epoch=train_batches, validation_steps=val_batches,
         epochs=epochs, verbose=1,
-        batch_size=batch_size, shuffle='batch',
         callbacks=[
             ks.callbacks.ModelCheckpoint(
                 filepath='models/model_{epoch:04d}-{val_loss:.5f}.hdf5', monitor='val_loss',
