@@ -25,9 +25,12 @@ def create_samples(y_train, yp_train, n):
     ]))
 
 
-def map_clusters(labels):
+def map_clusters(labels, mmap):
     """
     :param labels: an array of tuples, returned from create_sample function
+    :param mmap:
+        map one true class to multiple clusters.
+        Higher accuracy for some classes, but other classes are not recognized at all
     :return: a dictionary which contains mappings of cluster labels to true labels
     """
     mappings = {}
@@ -35,6 +38,13 @@ def map_clusters(labels):
     while labels:
         labels.sort(key=lambda x: np.max(np.bincount(x[1])))
         true, predicted = labels.pop()
-        mappings[int(true)] = int(np.argmax(np.bincount(predicted, minlength=11)))
+        bins = np.bincount(predicted, minlength=11)
+
+        if not mmap:
+            for v in mappings.values():
+                bins[0] = -1
+                bins[v] = -1
+
+        mappings[int(true)] = int(np.argmax(bins))
 
     return mappings
