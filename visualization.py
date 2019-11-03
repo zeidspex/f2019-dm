@@ -36,3 +36,4 @@ def visualize_confusion_matrix(images, true, predicted, out_path):
     ax.set_ylabel('True', size=24)
 
     plt.savefig(out_path)
+    plt.show()
