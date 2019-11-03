@@ -156,7 +156,7 @@ with h5py.File(preprocessed_data_path, 'r') as in_file:
 
     # Create embedding model
     model = ks.models.load_model(model_path)
-    embedding_model = ks.models.Model(inputs=model.inputs, outputs=model.layers[13].output)
+    embedding_model = ks.models.Model(inputs=model.inputs, outputs=model.layers[12].output)
 
     # Train K-means model
     x_train, y_train = np.array(in_file['x_train']), np.array(in_file['y_train'])
