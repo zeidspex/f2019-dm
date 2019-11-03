@@ -48,7 +48,7 @@ with tarfile.open(data_path, 'r:gz') as in_file:
 # Reshape features to 96x96x3 and normalize them
 for name in ['unlabeled_X', 'train_X', 'test_X']:
     data[name] = data[name]\
-       .reshape((-1, 3, 96, 96)).transpose((0, 3, 2, 1)).astype('float16') / 255
+       .reshape((-1, 3, 96, 96)).transpose((0, 3, 2, 1)).astype('float32') / 255
 
 # Split unlabeled data into training and validation sets
 ux_train, ux_val = model_selection.train_test_split(
