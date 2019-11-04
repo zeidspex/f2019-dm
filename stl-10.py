@@ -5,6 +5,7 @@ import json
 import random
 import tarfile
 import itertools
+import testing
 import clustering
 import visualization
 import classification
@@ -163,7 +164,7 @@ with h5py.File(preprocessed_data_path, 'r') as in_file:
     z_train = embedding_model.predict(x_train)
     kmeans = clustering.cluster_data(z_train)
     labels = clustering.create_samples(y_train, kmeans.labels_, sample_size)
-    mappings = clustering.map_clusters(labels, True)
+    mappings = clustering.map_clusters(labels, False)
 
     # Create and save classifier from embeddings model and K-means model
     clf = classification.Classifier(embedding_model, kmeans, mappings)
@@ -174,32 +175,15 @@ with h5py.File(preprocessed_data_path, 'r') as in_file:
 ####################################################################################################
 
 with h5py.File(preprocessed_data_path, 'r') as in_file:
-
-    # Load classifier
     clf = classification.load_model(classifier_path)
+    class_names = bytes(in_file['class_names']).decode('UTF-8').splitlines()
     x_test, y_test = np.array(in_file['x_test']), np.array(in_file['y_test'])
-    yp_test = clf.predict(x_test)
-    accuracies = []
-
-    # Compute accuracies for each class
-    for i in range(1, 11):
-        indices = np.argwhere(y_test == i)
-        accuracy = np.sum(yp_test[indices] == y_test[indices]) / len(y_test[indices])
-        accuracies.append(accuracy)
-
-    print(np.array(accuracies), np.mean(accuracies))
+    testing.test_classifier(clf, x_test, y_test, class_names)
 
 ####################################################################################################
 # Visualize results
 ####################################################################################################
 
 with h5py.File(preprocessed_data_path, 'r') as in_file:
-    images = []
-    x_train, y_train = np.array(in_file['x_train']), np.array(in_file['y_train'])
-
-    for i in range(1, 11):
-        img = x_train[np.argwhere(y_train == i)][2]
-        img = (img * 255).astype('uint8').reshape((96, 96, 3))
-        images.append(img)
-
-visualization.visualize_confusion_matrix(images, y_test, yp_test, 'figure.png')
+    yp_test = clf.predict(x_test)
+    visualization.visualize_confusion_matrix(x_test, y_test, yp_test, 'figure.png')
