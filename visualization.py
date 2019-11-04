@@ -1,18 +1,23 @@
+import numpy as np
 import matplotlib.pyplot as plt
 import sklearn.metrics as metrics
 
 
-def visualize_confusion_matrix(images, true, predicted, out_path):
+def visualize_confusion_matrix(x_test, y_test, yp_test, out_path):
     """
-    :param images: images used as labels in confusion matrix
-    :param true: true labels
-    :param predicted: predicted labels
+    :param x_test: features (needed for visualizing classes in confusion matrix)
+    :param y_test: labels
+    :param yp_test: predicted labels
     :param out_path: path for saving the figure
     :return: None
     """
+    images = [
+        (x_test[np.argwhere(y_test == i)][0] * 255).astype('uint8').reshape((96, 96, 3))
+        for i in range(1, 11)
+    ]
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
-    cm = metrics.confusion_matrix(true, predicted)
+    cm = metrics.confusion_matrix(y_test, yp_test)
     ax.matshow(cm)
 
     for i in range(cm.shape[0]):
