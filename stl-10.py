@@ -14,7 +14,7 @@ import keras as ks
 import tensorflow as tf
 import sklearn.model_selection as model_selection
 
-#%%
+#This is a test for git
 # Set allow_growth to true to avoid memory hogging
 ks.backend.tensorflow_backend.set_session(
     tf.Session(config=tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True)))
