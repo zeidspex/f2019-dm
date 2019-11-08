@@ -1,4 +1,5 @@
 #%%
+import os
 import re
 import h5py
 import pickle
@@ -22,7 +23,6 @@ ks.backend.tensorflow_backend.set_session(
 data_path = ''
 preprocessed_data_path = ''
 checkpoint_path = 'models/stl-10'
-model_path = ''
 classifier_path = ''
 batch_size = 32
 epochs = 100
@@ -150,7 +150,7 @@ with h5py.File(preprocessed_data_path, 'r') as data_file:
 with h5py.File(preprocessed_data_path, 'r') as in_file:
 
     # Create embedding model
-    model = ks.models.load_model(model_path)
+    model = ks.models.load_model(os.listdir(checkpoint_path)[-1])
     embedding_model = ks.models.Model(inputs=model.inputs, outputs=model.layers[12].output)
 
     # Train K-means model
