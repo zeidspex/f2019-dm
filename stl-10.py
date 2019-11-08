@@ -21,6 +21,7 @@ ks.backend.tensorflow_backend.set_session(
 
 data_path = ''
 preprocessed_data_path = ''
+checkpoint_path = 'models/stl-10'
 model_path = ''
 classifier_path = ''
 batch_size = 32
@@ -123,8 +124,9 @@ with h5py.File(preprocessed_data_path, 'r') as data_file:
         epochs=epochs, verbose=1,
         callbacks=[
             ks.callbacks.ModelCheckpoint(
-                filepath='models/model_{epoch:04d}-{val_loss:.5f}.hdf5', monitor='val_loss',
-                verbose=0, save_best_only=False, save_weights_only=False, mode='auto', period=5
+                filepath='%s/model_{epoch:04d}-{val_loss:.5f}.hdf5' % checkpoint_path,
+                monitor='val_loss', verbose=1, save_best_only=False,
+                save_weights_only=False, mode='auto', period=5
             ),
             ks.callbacks.EarlyStopping(
                 monitor='val_loss', min_delta=0, patience=patience,
