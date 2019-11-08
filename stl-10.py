@@ -1,7 +1,7 @@
 #%%
 import re
 import h5py
-import json
+import pickle
 import random
 import tarfile
 import itertools
@@ -145,8 +145,8 @@ with h5py.File(preprocessed_data_path, 'r') as data_file:
     )
 
     # Save history
-    with open('models/history.json', 'w') as hist_file:
-        hist_file.write(json.dumps(history.history, indent=4))
+    with open('models/history.pkl', 'wb') as hist_file:
+        hist_file.write(pickle.dumps(history.history))
 
 ####################################################################################################
 # Create classifier
