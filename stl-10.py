@@ -150,7 +150,7 @@ with h5py.File(preprocessed_data_path, 'r') as data_file:
 with h5py.File(preprocessed_data_path, 'r') as in_file:
 
     # Create embedding model
-    model = ks.models.load_model(os.listdir(checkpoint_path)[-1])
+    model = ks.models.load_model('%s/%s' % (checkpoint_path, os.listdir(checkpoint_path)[-1]))
     embedding_model = ks.models.Model(inputs=model.inputs, outputs=model.layers[12].output)
 
     # Train K-means model
