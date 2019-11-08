@@ -12,7 +12,6 @@ import classification
 import numpy as np
 import keras as ks
 import tensorflow as tf
-import sklearn.model_selection as model_selection
 
 
 # Set allow_growth to true to avoid memory hogging
@@ -29,7 +28,6 @@ epochs = 100
 patience = 20
 seed = 66
 learn_rate = 0.0001
-val_size = 0.2
 sample_size = 30
 
 #%%
@@ -51,25 +49,19 @@ for name in ['unlabeled_X', 'train_X', 'test_X']:
     data[name] = data[name]\
        .reshape((-1, 3, 96, 96)).transpose((0, 3, 2, 1)).astype('float32') / 255
 
-# Split unlabeled data into training and validation sets
-ux_train, ux_val = model_selection.train_test_split(
-    data['unlabeled_X'], test_size=val_size, random_state=seed
-)
-
 # Store prepared data in HDF5 file
 # Rename train_X to x_train, and etc.
 with h5py.File(preprocessed_data_path, 'w') as out_file:
     out_file['seed'] = seed
     out_file['class_names'] = data['class_names']
-    out_file['ux_train'] = ux_train
-    out_file['ux_val'] = ux_val
+    out_file['ux_train'] = data['unlabeled_X']
 
     for name in ['train_X', 'train_y', 'test_X', 'test_y']:
         new_name = (lambda x: '_'.join([y.lower() for y in x.split('_')[::-1]]))(name)
         out_file[new_name] = data[name]
 
 # Clear the memory
-del ux_train, ux_val, data
+del data
 
 #%%
 ####################################################################################################
@@ -122,11 +114,11 @@ with h5py.File(preprocessed_data_path, 'r') as data_file:
             for i in random.sample(range(n_batches), n_batches):
                 yield tuple(itertools.repeat(data[i * batch_size:(i + 1) * batch_size], 2))
 
-    train_batches = int(np.ceil(10**5 * (1 - val_size) / batch_size))
-    val_batches = int(np.ceil(10**5 * val_size / batch_size))
+    train_batches = int(np.ceil(len(data_file['ux_train']) / batch_size))
+    val_batches = int(len(data_file['x_train']) / batch_size)
     history = model.fit_generator(
         generator=data_generator(data_file['ux_train'], train_batches, batch_size),
-        validation_data=data_generator(data_file['ux_val'], val_batches, batch_size),
+        validation_data=data_generator(data_file['x_train'], val_batches, batch_size),
         steps_per_epoch=train_batches, validation_steps=val_batches,
         epochs=epochs, verbose=1,
         callbacks=[
