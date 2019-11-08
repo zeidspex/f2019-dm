@@ -25,7 +25,7 @@ preprocessed_data_path = ''
 checkpoint_path = 'models/stl-10'
 classifier_path = ''
 batch_size = 32
-epochs = 100
+epochs = 250
 patience = 20
 seed = 66
 learn_rate = 0.0001
@@ -130,10 +130,10 @@ with h5py.File(preprocessed_data_path, 'r') as data_file:
             ),
             ks.callbacks.EarlyStopping(
                 monitor='val_loss', min_delta=0, patience=patience,
-                verbose=0, mode='auto'
+                verbose=1, mode='auto'
             ),
-            ks.callbacks.LearningRateScheduler(
-                (lambda epoch: learn_rate / (2**(epoch // patience)))
+            ks.callbacks.ReduceLROnPlateau(
+                monitor='val_loss', patience=patience, cooldown=1, verbose=1, factor=0.5
             )
         ]
     )
