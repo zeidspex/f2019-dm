@@ -1,3 +1,4 @@
+import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 import sklearn.metrics as metrics
@@ -39,6 +40,29 @@ def visualize_confusion_matrix(x_test, y_test, yp_test, out_path):
     ax.set_yticks([])
     ax.set_xlabel('Predicted', size=24)
     ax.set_ylabel('True', size=24)
+
+    plt.savefig(out_path)
+    plt.show()
+
+
+def plot_loss(history_path, out_path):
+    """
+    :param history_path: path to training history file
+    :param out_path: path for saving the figure
+    :return: None
+    """
+    with open(history_path, 'rb') as file:
+        data = pickle.loads(file.read())
+
+    plt.style.use("seaborn")
+    fig = plt.figure(figsize=(8, 8))
+    ax = fig.add_subplot(1, 1, 1)
+    ax.plot(data['loss'], label='Training Loss')
+    ax.plot(data['val_loss'], label='Validation Loss')
+    ax.legend(fontsize=16)
+    ax.tick_params(labelsize=12)
+    ax.set_xlabel("Epoch", fontsize=16)
+    ax.set_ylabel("Loss", fontsize=16)
 
     plt.savefig(out_path)
     plt.show()
