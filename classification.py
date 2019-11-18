@@ -1,11 +1,10 @@
 import io
 import os
-import json
 import pickle
 import tarfile
 import keras as ks
 import numpy as np
-import clustering
+import sklearn.cluster as cluster
 
 
 class Classifier:
@@ -13,15 +12,13 @@ class Classifier:
     A classifier based on K-means clustering and previously created
     mappings between cluster labels and true labels
     """
-    def __init__(self, embedding_model, kmeans, mappings):
+    def __init__(self, embedding_model, kmeans):
         """
         :param embedding_model: Keras model for converting images to embeddings
         :param kmeans: K-means model
-        :param mappings: mappings from cluster labels to true labels
         """
         self.embedding_model = embedding_model
         self.kmeans = kmeans
-        self.mappings = mappings
 
     def predict(self, x):
         """
@@ -29,9 +26,20 @@ class Classifier:
         :return: predicted classes
         """
         z = self.embedding_model.predict(x)
-        yp = np.array([self.mappings[int(yp)] for yp in self.kmeans.predict(z)])
+        yp = np.array(self.kmeans.predict(z))
 
         return yp
+
+
+def cluster_data(z_train, centroids):
+    """
+    :param z_train: training data embeddings
+    :param centroids: initial centroids of the cluster
+    :return: predicted labels for training data (yp_train)
+    """
+    return cluster.KMeans(
+        n_clusters=10, max_iter=1, n_jobs=-1, n_init=1, init=centroids
+    ).fit(z_train)
 
 
 def create_model(autoencoder, embedding_layer, x_train, y_train, sample_size):
@@ -43,7 +51,6 @@ def create_model(autoencoder, embedding_layer, x_train, y_train, sample_size):
     :param sample_size: sample size for cluster labeling
     :return: a classifier
     """
-
     # Create embedding model
     embedding_model = ks.models.Model(
         inputs=autoencoder.inputs, outputs=autoencoder.layers[embedding_layer].output
@@ -51,12 +58,14 @@ def create_model(autoencoder, embedding_layer, x_train, y_train, sample_size):
 
     # Train K-means model
     z_train = embedding_model.predict(x_train)
-    kmeans = clustering.cluster_data(z_train)
-    labels = clustering.create_samples(y_train, kmeans.labels_, sample_size)
-    mappings = clustering.map_clusters(labels, False)
+    centroids = np.array([
+        np.mean(z_train[np.argwhere(y_train == i)].reshape(-1, 1024)[0:sample_size], axis=0)
+        for i in range(10)
+    ])
+    kmeans = cluster_data(z_train, centroids)
 
     # Create classifier from embeddings model and K-means model and return it
-    return Classifier(embedding_model, kmeans, mappings)
+    return Classifier(embedding_model, kmeans)
 
 
 def load_model(model_path):
@@ -71,12 +80,8 @@ def load_model(model_path):
         embeddings = ks.models.load_model('embeddings.h5')
         os.remove('embeddings.h5')
         kmeans = pickle.loads(in_file.extractfile('kmeans.pkl').read())
-        mappings = {
-            int(k): v
-            for k, v in json.loads(in_file.extractfile('mappings.json').read()).items()
-        }
 
-        return Classifier(embeddings, kmeans, mappings)
+        return Classifier(embeddings, kmeans)
 
 
 def save_model(model, model_path):
@@ -91,11 +96,10 @@ def save_model(model, model_path):
         embedding_model = in_file.read()
 
     with tarfile.open(model_path, mode='w') as out_file:
-        names = ['embeddings.h5', 'kmeans.pkl', 'mappings.json']
+        names = ['embeddings.h5', 'kmeans.pkl']
         objects = [
             embedding_model,
             pickle.dumps(model.kmeans),
-            json.dumps(model.mappings).encode('UTF-8')
         ]
 
         for name, data in zip(names, objects):
