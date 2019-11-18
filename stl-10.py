@@ -24,6 +24,7 @@ data_path = ''
 preprocessed_data_path = ''
 checkpoint_path = 'models/stl-10'
 classifier_path = ''
+figure_out_path = ''
 batch_size = 32
 epochs = 250
 patience = 20
@@ -139,7 +140,7 @@ with h5py.File(preprocessed_data_path, 'r') as data_file:
     )
 
     # Save history
-    with open('models/history.pkl', 'wb') as hist_file:
+    with open('%s/history.pkl' % checkpoint_path, 'wb') as hist_file:
         hist_file.write(pickle.dumps(history.history))
 
 ####################################################################################################
@@ -180,4 +181,4 @@ with h5py.File(preprocessed_data_path, 'r') as in_file:
 
 with h5py.File(preprocessed_data_path, 'r') as in_file:
     yp_test = clf.predict(x_test)
-    visualization.visualize_confusion_matrix(x_test, y_test, yp_test, 'figure.png')
+    visualization.visualize_confusion_matrix(x_test, y_test, yp_test, figure_out_path)
