@@ -50,6 +50,8 @@ for mapping in file_mappings:
             [int(x) for x in in_file.read()[8:]]
         ).reshape((file_mappings[mapping]['count'], 1)).reshape(-1)
 
+    data['class_names'] = [str(x) for x in range(10)]
+
 #%%
 ####################################################################################################
 # Create model
