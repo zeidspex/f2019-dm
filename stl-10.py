@@ -182,7 +182,5 @@ with h5py.File(preprocessed_data_path, 'r') as in_file:
 ####################################################################################################
 # Visualize results
 ####################################################################################################
-
-with h5py.File(preprocessed_data_path, 'r') as in_file:
-    yp_test = clf.predict(x_test)
-    visualization.visualize_confusion_matrix(x_test, y_test, yp_test, figure_out_path)
+yp_test = clf.predict(x_test)
+visualization.visualize_confusion_matrix(x_test, y_test, yp_test, figure_out_path)
