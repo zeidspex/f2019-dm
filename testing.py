@@ -22,6 +22,9 @@ def test_classifier(clf, x_test, y_test, class_names, out_path=None):
     data = pd.DataFrame(
         data.T, columns=class_names, index=['Precision', 'Recall', 'F1 Score']).round(2)
 
+    print(data.loc['Precision'].mean())
+    print(data.loc['Recall'].mean())
+
     if out_path:
         data.to_csv(out_path)
 
