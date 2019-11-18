@@ -41,7 +41,7 @@ def create_model(autoencoder, embedding_layer, x_train, y_train, sample_size):
     :param x_train: training features
     :param y_train: training labels
     :param sample_size: sample size for cluster labeling
-    :return:
+    :return: a classifier
     """
 
     # Create embedding model
