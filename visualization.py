@@ -34,7 +34,12 @@ def visualize_confusion_matrix(x_test, y_test, yp_test, out_path):
         for xy, idx in zip((lambda x: [x, x[::-1]])([0.915, y / 100]), [9 - i, i]):
             ax1 = fig.add_axes([*xy, 0.07, 0.07])
             ax1.axison = False
-            ax1.imshow(images[idx])
+            img = images[idx]
+
+            if img.shape[2] == 1:
+                img = (np.concatenate([img for _ in range(3)], axis=-1))
+
+            ax1.imshow(img)
 
     ax.set_xticks([])
     ax.set_yticks([])

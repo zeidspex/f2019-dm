@@ -7,7 +7,6 @@ import random
 import tarfile
 import itertools
 import testing
-import clustering
 import visualization
 import classification
 import numpy as np
@@ -153,20 +152,10 @@ with h5py.File(preprocessed_data_path, 'r') as data_file:
 
 #%%
 with h5py.File(preprocessed_data_path, 'r') as in_file:
-
-    # Create embedding model
     model = ks.models.load_model('%s/%s' % (checkpoint_path, os.listdir(checkpoint_path)[-1]))
-    embedding_model = ks.models.Model(inputs=model.inputs, outputs=model.layers[12].output)
-
-    # Train K-means model
-    x_train, y_train = np.array(in_file['x_train']), np.array(in_file['y_train'])
-    z_train = embedding_model.predict(x_train)
-    kmeans = clustering.cluster_data(z_train)
-    labels = clustering.create_samples(y_train, kmeans.labels_, sample_size)
-    mappings = clustering.map_clusters(labels, False)
-
-    # Create and save classifier from embeddings model and K-means model
-    clf = classification.Classifier(embedding_model, kmeans, mappings)
+    clf = classification.create_model(
+        model, 12, np.array(in_file['x_train']), np.array(in_file['y_train']), sample_size
+    )
     classification.save_model(clf, classifier_path)
 
 ####################################################################################################
@@ -176,11 +165,16 @@ with h5py.File(preprocessed_data_path, 'r') as in_file:
 with h5py.File(preprocessed_data_path, 'r') as in_file:
     clf = classification.load_model(classifier_path)
     class_names = bytes(in_file['class_names']).decode('UTF-8').splitlines()
-    x_test, y_test = np.array(in_file['x_test']), np.array(in_file['y_test'])
-    testing.test_classifier(clf, x_test, y_test, class_names)
+    testing.test_classifier(
+        clf, np.array(in_file['x_test']), np.array(in_file['y_test']), class_names
+    )
 
 ####################################################################################################
 # Visualize results
 ####################################################################################################
-yp_test = clf.predict(x_test)
-visualization.visualize_confusion_matrix(x_test, y_test, yp_test, figure_out_path)
+#%%
+with h5py.File(preprocessed_data_path, 'r') as in_file:
+    yp_test = clf.predict(np.array(in_file['x_test']))
+    visualization.visualize_confusion_matrix(
+        np.array(in_file['x_test']), np.array(in_file['y_test']), yp_test, figure_out_path
+    )

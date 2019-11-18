@@ -5,6 +5,7 @@ import pickle
 import tarfile
 import keras as ks
 import numpy as np
+import clustering
 
 
 class Classifier:
@@ -31,6 +32,31 @@ class Classifier:
         yp = np.array([self.mappings[int(yp)] for yp in self.kmeans.predict(z)])
 
         return yp
+
+
+def create_model(autoencoder, embedding_layer, x_train, y_train, sample_size):
+    """
+    :param autoencoder: trained autoencoder model
+    :param embedding_layer: index of embedding layer
+    :param x_train: training features
+    :param y_train: training labels
+    :param sample_size: sample size for cluster labeling
+    :return:
+    """
+
+    # Create embedding model
+    embedding_model = ks.models.Model(
+        inputs=autoencoder.inputs, outputs=autoencoder.layers[embedding_layer].output
+    )
+
+    # Train K-means model
+    z_train = embedding_model.predict(x_train)
+    kmeans = clustering.cluster_data(z_train)
+    labels = clustering.create_samples(y_train, kmeans.labels_, sample_size)
+    mappings = clustering.map_clusters(labels, False)
+
+    # Create classifier from embeddings model and K-means model and return it
+    return Classifier(embedding_model, kmeans, mappings)
 
 
 def load_model(model_path):
