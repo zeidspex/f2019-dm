@@ -13,8 +13,8 @@ def visualize_confusion_matrix(x_test, y_test, yp_test, out_path):
     :return: None
     """
     images = [
-        (x_test[np.argwhere(y_test == i)][0] * 255).astype('uint8').reshape((96, 96, 3))
-        for i in range(1, 11)
+        (x_test[np.argwhere(y_test == i)][0] * 255).astype('uint8').reshape((x_test.shape[1:]))
+        for i in range(10)
     ]
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])

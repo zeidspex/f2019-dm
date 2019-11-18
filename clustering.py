@@ -38,7 +38,7 @@ def map_clusters(labels, mmap):
     while labels:
         labels.sort(key=lambda x: np.max(np.bincount(x[1])))
         true, predicted = labels.pop()
-        bins = np.bincount(predicted, minlength=11)
+        bins = np.bincount(predicted, minlength=10)
 
         if not mmap:
             for v in mappings.values():
