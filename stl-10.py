@@ -60,7 +60,11 @@ with h5py.File(preprocessed_data_path, 'w') as out_file:
 
     for name in ['train_X', 'train_y', 'test_X', 'test_y']:
         new_name = (lambda x: '_'.join([y.lower() for y in x.split('_')[::-1]]))(name)
-        out_file[new_name] = data[name]
+
+        if new_name in ['y_train', 'y_test']:
+            out_file[new_name] = data[name] - 1
+        else:
+            out_file[new_name] = data[name]
 
 # Clear the memory
 del data
