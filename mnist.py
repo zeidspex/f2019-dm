@@ -2,7 +2,6 @@
 import os
 import gzip
 import pickle
-import testing
 import visualization
 import classification
 import numpy as np
@@ -143,9 +142,7 @@ classification.save_model(clf, classifier_path)
 ####################################################################################################
 
 clf = classification.load_model(classifier_path)
-class_names = [str(x) for x in range(10)]
-x_test, y_test = np.array(data['x_test']), np.array(data['y_test'])
-testing.test_classifier(clf, x_test, y_test, class_names)
+classification.test_model(clf, data['x_test'], data['y_test'], data['class_names'])
 
 ####################################################################################################
 # Visualize results
