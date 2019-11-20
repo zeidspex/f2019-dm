@@ -25,9 +25,9 @@ print(ks.__version__)
 model_path = 'data/model_mnist.h5'
 batch_size = 128
 num_classes = 10
-epochs = 500
+epochs = 200
 patience = 40
-learn_rate = 0.0001
+learn_rate = 0.01
 
 # input image dimensions
 img_rows, img_cols, img_channels = 28, 28, 1
