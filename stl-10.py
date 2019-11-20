@@ -6,7 +6,6 @@ import pickle
 import random
 import tarfile
 import itertools
-import testing
 import visualization
 import classification
 import numpy as np
@@ -165,7 +164,7 @@ with h5py.File(preprocessed_data_path, 'r') as in_file:
 with h5py.File(preprocessed_data_path, 'r') as in_file:
     clf = classification.load_model(classifier_path)
     class_names = bytes(in_file['class_names']).decode('UTF-8').splitlines()
-    testing.test_classifier(
+    classification.test_model(
         clf, np.array(in_file['x_test']), np.array(in_file['y_test']), class_names
     )
 
