@@ -3,7 +3,6 @@ import os
 import gzip
 import pickle
 import testing
-import clustering
 import visualization
 import classification
 import numpy as np
@@ -151,6 +150,9 @@ testing.test_classifier(clf, x_test, y_test, class_names)
 ####################################################################################################
 # Visualize results
 ####################################################################################################
+
+yp_test = clf.predict(data['x_test'])
+visualization.visualize_confusion_matrix(data['x_test'], data['y_test'], yp_test, figure_out_path)
 
 yp_test = clf.predict(x_test)
 x_test_viz = (np.concatenate([x_test for _ in range(3)], axis=-1))
