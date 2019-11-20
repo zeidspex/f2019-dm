@@ -59,7 +59,10 @@ def create_model(autoencoder, embedding_layer, x_train, y_train, sample_size):
     # Train K-means model
     z_train = embedding_model.predict(x_train)
     centroids = np.array([
-        np.mean(z_train[np.argwhere(y_train == i)].reshape(-1, 1024)[0:sample_size], axis=0)
+        np.mean(
+            z_train[np.argwhere(y_train == i)].reshape(-1, z_train.shape[1])[0:sample_size],
+            axis=0
+        )
         for i in range(10)
     ])
     kmeans = cluster_data(z_train, centroids)
