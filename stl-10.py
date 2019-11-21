@@ -28,7 +28,7 @@ epochs = 250
 patience = 20
 seed = 66
 learn_rate = 0.0001
-sample_size = 30
+labeled_samples_per_class = 10
 
 #%%
 ####################################################################################################
@@ -153,7 +153,8 @@ with h5py.File(preprocessed_data_path, 'r') as data_file:
 with h5py.File(preprocessed_data_path, 'r') as in_file:
     model = ks.models.load_model('%s/%s' % (checkpoint_path, os.listdir(checkpoint_path)[-1]))
     clf = classification.create_model(
-        model, 12, np.array(in_file['x_train']), np.array(in_file['y_train']), sample_size
+        model, 12, np.array(in_file['x_train']), np.array(in_file['y_train']),
+        labeled_samples_per_class
     )
     classification.save_model(clf, classifier_path)
 
