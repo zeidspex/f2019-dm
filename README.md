@@ -1,4 +1,4 @@
-## Using Deep Convulutional Autoencoder for Unsupervised Image Classification
+## Using Deep Convolutional Autoencoder for Unsupervised Image Classification
 
 ### Datasets
 
