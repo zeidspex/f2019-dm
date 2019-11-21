@@ -7,6 +7,7 @@ from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D
 from keras import backend as K
 from keras.models import load_model
+import tensorflow as tf
 import h5py
 import mnist_model
 
@@ -18,7 +19,36 @@ patience = 40
 learn_rate = 0.01
 
 # Create and build the model from layers, print model info
-model = mnist_model.get_classifier()
+
+model = ks.models.Sequential([
+    # # Convolutional Layer with 20 neurons and 3x3 receptive field and ReLU activation
+    # #       and using Batch Normalization and Dropout
+    # ks.layers.Conv2D(20, (3, 3), padding='same', use_bias=False,
+    #              input_shape=(28, 28, 1)),
+    # ks.layers.BatchNormalization(),
+    # ks.layers.Activation('relu'),
+    # ks.layers.Dropout(0.2),
+    # # Convolutional Layer with 10 neurons and 3x3 receptive field and ReLU activation
+    # #       and using Batch Normalization and Dropout
+    # ks.layers.Conv2D(10, (3, 3), padding='same', use_bias=False),
+    # ks.layers.BatchNormalization(),
+    # ks.layers.Activation('relu'),
+    # # Max Pooling layer of size 2x2
+    # ks.layers.MaxPooling2D(pool_size=(2, 2)),
+    # ks.layers.Dropout(0.2),
+    # Fully connected Layer with 100 neurons ReLU activation
+    #       and using Batch Normalization and Dropout
+    ks.layers.Flatten(),              # Flatten first
+    ks.layers.Dense(40, use_bias=False),
+    ks.layers.BatchNormalization(),
+    ks.layers.Activation('relu'),
+    ks.layers.Dropout(0.2),
+    # Fully connected Layer with 10 neurons Softmax activation
+    ks.layers.Dense(10, use_bias=False),
+    ks.layers.BatchNormalization(),
+    ks.layers.Activation('softmax'),
+])
+
 model.compile(
     optimizer=ks.optimizers.Adam(lr=learn_rate),
     loss=ks.losses.categorical_crossentropy,
@@ -27,12 +57,13 @@ model.compile(
 # model.summary()
 
 
+#%%
 # Restore prepared data in HDF5 file
 with h5py.File('data/mnist.hdf5', 'r') as data_file:
     seed = data_file['seed']
     num_classes = data_file['num_classes']
-    ux_train = np.array(data_file['ux_train'])
-    ux_val = np.array(data_file['ux_val'])
+    ux_train = data_file['ux_train']
+    ux_val = data_file['ux_val']
     lx_train = np.array(data_file['x_train'])
     ly_train = np.array(data_file['y_train'])
     lx_val = np.array(data_file['x_val'])
