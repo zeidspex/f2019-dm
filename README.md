@@ -2,8 +2,20 @@
 
 ### Datasets
 
-[MNIST](http://yann.lecun.com/exdb/mnist) &nbsp; |  &nbsp;
-[Fashion MNIST](https://github.com/zalandoresearch/fashion-mnist) &nbsp; | &nbsp;
-[STL-10](https://cs.stanford.edu/~acoates/stl10)
+<p align="center">
+<a href="http://yann.lecun.com/exdb/mnist">MNIST<a>  &nbsp; |  &nbsp;
+<a href="https://github.com/zalandoresearch/fashion-mnist">Fashion MNIST<a> &nbsp; |  &nbsp;
+<a href="https://cs.stanford.edu/~acoates/stl10">STL-10<a>
+</p>
+
+### MNIST Results
+
+TODO
+
+### Fashion MNIST Results
+
+TODO
+
+### STL-10 Results
 
 ![alt text](figures/stl10-confusion.png)
