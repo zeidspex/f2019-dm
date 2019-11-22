@@ -6,7 +6,7 @@ import copy
 
 encoding_size = 15
 conv_encoder = 32
-conv_decoder = 32
+conv_decoder = 128
 
 model_path = 'data/model_mnist.h5'
 num_classes = 10
@@ -41,8 +41,8 @@ def _get_encoder_layers():
     encoder_layers = _get_shared_layers()
 
     encoder_layers += [
-        ks.layers.Dense(7 * 7 * conv_decoder, activation='relu'),
-        ks.layers.Reshape((7, 7, conv_decoder))
+        ks.layers.Dense(7 * 7 * 8, activation='relu'),
+        ks.layers.Reshape((7, 7, 8))
     ]
 
     # Deconvolutional layers (4 x Deconv + 1 x Deconv with 3 filters for the last layer)
@@ -58,6 +58,8 @@ def _get_encoder_layers():
 def get_encoder():
     # Create and build the model from layers, print model info
     encoder_model = ks.models.Sequential(_get_encoder_layers())
+
+    # encoder_model.load_weights(model_path)
 
     return encoder_model
 
