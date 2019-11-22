@@ -39,7 +39,7 @@ model = ks.models.Sequential([
     # Fully connected Layer with 100 neurons ReLU activation
     #       and using Batch Normalization and Dropout
     ks.layers.Flatten(),              # Flatten first
-    ks.layers.Dense(40, use_bias=False),
+    ks.layers.Dense(196, use_bias=False),
     ks.layers.BatchNormalization(),
     ks.layers.Activation('relu'),
     ks.layers.Dropout(0.2),
