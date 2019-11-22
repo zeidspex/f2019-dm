@@ -15,7 +15,7 @@ batch_size = 128
 num_classes = 10
 epochs = 200
 patience = 40
-learn_rate = 0.01
+learn_rate = 0.001
 
 # Create and build the model from layers, print model info
 model = mnist_model.get_classifier()

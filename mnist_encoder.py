@@ -26,7 +26,7 @@ batch_size = 128
 num_classes = 10
 epochs = 100
 patience = 20
-learn_rate = 0.01
+learn_rate = 0.001
 
 # input image dimensions
 img_rows, img_cols, img_channels = 28, 28, 1
