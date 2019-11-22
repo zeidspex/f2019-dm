@@ -4,6 +4,10 @@ import tensorflow as tf
 from keras.datasets import mnist
 import copy
 
+encoding_size = 15
+conv_encoder = 32
+conv_decoder = 32
+
 model_path = 'data/model_mnist.h5'
 num_classes = 10
 
@@ -16,7 +20,7 @@ def _get_shared_layers():
     shared_layers = [ks.layers.InputLayer(input_shape=(img_rows, img_cols, img_channels))]
 
     # Convolutional layers (5 x (Conv + Max Pool))
-    for n_filters in 4 * 2 ** np.array(range(2)):
+    for n_filters in list(conv_encoder * 2 ** np.array(range(2))): #+ [encoding_size]:
         shared_layers.append(ks.layers.Conv2D(
             filters=n_filters, kernel_size=(3, 3),
             activation='relu', padding='same',
@@ -25,8 +29,9 @@ def _get_shared_layers():
 
     # Dense layers
     shared_layers += [
-        ks.layers.Flatten(),
-        ks.layers.Dense(15, activation='relu'),
+        # ks.layers.Flatten(),
+        ks.layers.GlobalAveragePooling2D(),
+        ks.layers.Dense(encoding_size, activation='relu'),
     ]
 
     return shared_layers
@@ -36,12 +41,12 @@ def _get_encoder_layers():
     encoder_layers = _get_shared_layers()
 
     encoder_layers += [
-        ks.layers.Dense(7 * 7 * 8, activation='relu'),
-        ks.layers.Reshape((7, 7, 8))
+        ks.layers.Dense(7 * 7 * conv_decoder, activation='relu'),
+        ks.layers.Reshape((7, 7, conv_decoder))
     ]
 
     # Deconvolutional layers (4 x Deconv + 1 x Deconv with 3 filters for the last layer)
-    for n_filters in list(8 // 2 ** np.array(range(1))) + [1]:
+    for n_filters in list(conv_decoder // 2 ** np.array(range(1))) + [1]:
         encoder_layers.append(ks.layers.Deconvolution2D(
             filters=n_filters, kernel_size=(3, 3),
             activation='relu', padding='same', strides=(2, 2)
