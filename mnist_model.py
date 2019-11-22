@@ -19,18 +19,20 @@ def _get_shared_layers():
     # Input layer
     shared_layers = [ks.layers.InputLayer(input_shape=(img_rows, img_cols, img_channels))]
 
-    # Convolutional layers (5 x (Conv + Max Pool))
-    for n_filters in list(conv_encoder * 2 ** np.array(range(2))): #+ [encoding_size]:
-        shared_layers.append(ks.layers.Conv2D(
-            filters=n_filters, kernel_size=(3, 3),
-            activation='relu', padding='same',
-        ))
-        shared_layers.append(ks.layers.MaxPooling2D(pool_size=(2, 2)))
+    # # Convolutional layers (5 x (Conv + Max Pool))
+    # for n_filters in list(conv_encoder * 2 ** np.array(range(2))): #+ [encoding_size]:
+    #     shared_layers.append(ks.layers.Conv2D(
+    #         filters=n_filters, kernel_size=(3, 3),
+    #         activation='relu', padding='same',
+    #     ))
+    #     shared_layers.append(ks.layers.MaxPooling2D(pool_size=(2, 2)))
 
     # Dense layers
     shared_layers += [
-        # ks.layers.Flatten(),
-        ks.layers.GlobalAveragePooling2D(),
+        ks.layers.Flatten(),
+        # ks.layers.GlobalAveragePooling2D(),
+        ks.layers.Dense(392, activation='relu'),
+        ks.layers.Dense(196, activation='relu'),
         ks.layers.Dense(encoding_size, activation='relu'),
     ]
 
@@ -41,16 +43,18 @@ def _get_encoder_layers():
     encoder_layers = _get_shared_layers()
 
     encoder_layers += [
-        ks.layers.Dense(7 * 7 * 8, activation='relu'),
-        ks.layers.Reshape((7, 7, 8))
+        ks.layers.Dense(196, activation='relu'),
+        ks.layers.Dense(392, activation='relu'),
+        ks.layers.Dense(28*28, activation='relu'),
+        ks.layers.Reshape((28, 28, 1))
     ]
 
-    # Deconvolutional layers (4 x Deconv + 1 x Deconv with 3 filters for the last layer)
-    for n_filters in list(conv_decoder // 2 ** np.array(range(1))) + [1]:
-        encoder_layers.append(ks.layers.Deconvolution2D(
-            filters=n_filters, kernel_size=(3, 3),
-            activation='relu', padding='same', strides=(2, 2)
-        ))
+    # # Deconvolutional layers (4 x Deconv + 1 x Deconv with 3 filters for the last layer)
+    # for n_filters in list(conv_decoder // 2 ** np.array(range(1))) + [1]:
+    #     encoder_layers.append(ks.layers.Deconvolution2D(
+    #         filters=n_filters, kernel_size=(3, 3),
+    #         activation='relu', padding='same', strides=(2, 2)
+    #     ))
 
     return encoder_layers
 
