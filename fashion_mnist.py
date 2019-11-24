@@ -116,6 +116,45 @@ encoder_model.fit(unlabeled_train_images, unlabeled_train_images,
 
 
 encoder_model.load_weights(model_path)
-score = encoder_model.evaluate(test_images, test_labels, verbose=0)
-print('Test loss:')
+score = encoder_model.evaluate(test_images, test_images, verbose=0)
+print('Test loss for the trained encoder model:')
 print(score)
+
+
+
+
+####################################################################################################
+# Create classifier
+####################################################################################################
+
+# #%%
+# with h5py.File(preprocessed_data_path, 'r') as in_file:
+#
+#     # Create embedding model
+#     model = ks.models.load_model(model_path)
+#     embedding_model = ks.models.Model(inputs=model.inputs, outputs=model.layers[12].output)
+#
+#     # Train K-means model
+#     x_train, y_train = np.array(in_file['x_train']), np.array(in_file['y_train'])
+#     z_train = embedding_model.predict(x_train)
+#     kmeans = clustering.cluster_data(z_train)
+#     labels = clustering.create_samples(y_train, kmeans.labels_, sample_size)
+#     mappings = clustering.map_clusters(labels, False)
+#
+#     # Create and save classifier from embeddings model and K-means model
+#     clf = classification.Classifier(embedding_model, kmeans, mappings)
+#     classification.save_model(clf, classifier_path)
+
+####################################################################################################
+# Test classifier
+####################################################################################################
+#
+# with h5py.File(preprocessed_data_path, 'r') as in_file:
+#     clf = classification.load_model(classifier_path)
+#     class_names = bytes(in_file['class_names']).decode('UTF-8').splitlines()
+#     x_test, y_test = np.array(in_file['x_test']), np.array(in_file['y_test'])
+#     testing.test_classifier(clf, x_test, y_test, class_names)
+
+####################################################################################################
+# Visualize results
+####################################################################################################
