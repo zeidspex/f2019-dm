@@ -18,18 +18,24 @@ import sklearn.model_selection as model_selection
 
 #######################################
 #### Variable Initalizations ##########
-model_path = 'data/model_FashionMnist.h5'
 
-##Autoencoder variables
+batch_size = 128
 num_classes=10
 seed=66
 val_size=0.2
-e_batch_size = 128
+
+##Autoencoder variables
+e_model_path = 'data/model_FashionMnist.h5'
 e_epochs = 1
 e_patience = 40
 e_learn_rate = 0.0001
 
 ##Classification variables
+c_model_path = 'data/model_FashionMnist_classifier.h5'
+c_epochs = 1
+c_patience = 40
+c_learn_rate = 0.001
+
 
 #######################################
 #######Data Preparing##################
@@ -69,18 +75,18 @@ encoder_model.compile(
 )
 encoder_model.summary()
 
-#######################################
-######### Train the Model ############
+##################################################
+######### Train the AutoEncoder Model ############
 
 # Train model
 encoder_model.fit(unlabeled_train_images, unlabeled_train_images,
     validation_data=(unlabeled_val_images, unlabeled_val_images),
-    batch_size=e_batch_size,  shuffle='batch',
+    batch_size=batch_size,  shuffle='batch',
     epochs=e_epochs,
     verbose=1,
     callbacks=[
         ks.callbacks.ModelCheckpoint(
-            filepath=model_path, monitor='val_loss',
+            filepath=e_model_path, monitor='val_loss',
             verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=5
         ),
         ks.callbacks.EarlyStopping(
@@ -94,20 +100,31 @@ encoder_model.fit(unlabeled_train_images, unlabeled_train_images,
     ]
 )
 
-
-encoder_model.load_weights(model_path)
+#Test Model
+encoder_model.load_weights(e_model_path)
 score = encoder_model.evaluate(test_images, test_images, verbose=0)
 print('Test loss for the trained encoder model:')
 print(score)
 
 
 
-###########################################################
-### Create the Classifier from Autoencoder model############
+#######################################################
+#########Classifier from Autoencoder model############
+
+# c_model_layers = fashion_utils.get_fashion_classifier_model()
+# classifier_model = ks.models.Sequential(c_model_layers)
+# classifier_model.compile(
+#     optimizer=ks.optimizers.Adam(lr=c_learn_rate),
+#     loss=ks.losses.categorical_crossentropy,
+#     metrics=['accuracy']
+# )
+#
+#encoder_model.summary()
+#Train Model
+
+#Test Model
 
 
-#########################################
-######## Test the Classifier ############
 
 #######################################
 ######### Visualize Results ############

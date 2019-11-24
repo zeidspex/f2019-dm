@@ -14,7 +14,7 @@ import sklearn.model_selection as model_selection
 
 
 def get_fashion_encoder_model():
-    
+
     model_layers = [ks.layers.InputLayer(input_shape=(28, 28,1))]
 
     # Convolutional layers (5 x (Conv + Max Pool))
@@ -40,3 +40,23 @@ def get_fashion_encoder_model():
         ))
 
     return model_layers
+
+def get_fashion_classifier_model():
+    # Create and build the model from layers, print model info
+    classifier_model = ks.models.Sequential()
+
+    weights_model = ks.models.Sequential(_get_encoder_layers())
+    weights_model.load_weights(model_path)
+
+    for layer in weights_model.layers[:len(_get_shared_layers())]:
+        layer.trainable = False
+        classifier_model.add(layer)
+
+    # classifier_model.add(ks.layers.Flatten())
+    # classifier_model.add(ks.layers.Dense(196, activation='relu'))
+    classifier_model.add(ks.layers.Dropout(0.2))
+    classifier_model.add(ks.layers.Dense(40, activation='relu'))
+    classifier_model.add(ks.layers.Dropout(0.2))
+    classifier_model.add(ks.layers.Dense(num_classes, activation='softmax'))
+
+    return classifier_model
