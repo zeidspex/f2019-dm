@@ -111,15 +111,14 @@ print(score)
 #######################################################
 #########Classifier from Autoencoder model############
 
-# c_model_layers = fashion_utils.get_fashion_classifier_model()
-# classifier_model = ks.models.Sequential(c_model_layers)
-# classifier_model.compile(
-#     optimizer=ks.optimizers.Adam(lr=c_learn_rate),
-#     loss=ks.losses.categorical_crossentropy,
-#     metrics=['accuracy']
-# )
-#
-#encoder_model.summary()
+classifier_model = fashion_utils.get_fashion_classifier_model(e_model_path)
+classifier_model.compile(
+    optimizer=ks.optimizers.Adam(lr=c_learn_rate),
+    loss=ks.losses.categorical_crossentropy,
+    metrics=['accuracy']
+)
+
+classifier_model.summary()
 #Train Model
 
 #Test Model

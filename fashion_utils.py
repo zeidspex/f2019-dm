@@ -41,22 +41,24 @@ def get_fashion_encoder_model():
 
     return model_layers
 
-def get_fashion_classifier_model():
-    # Create and build the model from layers, print model info
-    classifier_model = ks.models.Sequential()
+def get_fashion_classifier_model(model_path):
 
-    weights_model = ks.models.Sequential(_get_encoder_layers())
+    # Create and build the model from layers, print model info
+    fashion_classifier = ks.models.Sequential()
+
+
+    weights_model = ks.models.Sequential(get_fashion_encoder_model())
     weights_model.load_weights(model_path)
 
-    for layer in weights_model.layers[:len(_get_shared_layers())]:
+    for layer in weights_model.layers[:len(get_fashion_encoder_model())]:
         layer.trainable = False
-        classifier_model.add(layer)
+        fashion_classifier.add(layer)
 
     # classifier_model.add(ks.layers.Flatten())
     # classifier_model.add(ks.layers.Dense(196, activation='relu'))
-    classifier_model.add(ks.layers.Dropout(0.2))
-    classifier_model.add(ks.layers.Dense(40, activation='relu'))
-    classifier_model.add(ks.layers.Dropout(0.2))
-    classifier_model.add(ks.layers.Dense(num_classes, activation='softmax'))
+    fashion_classifier.add(ks.layers.Dropout(0.2))
+    fashion_classifier.add(ks.layers.Dense(40, activation='relu'))
+    fashion_classifier.add(ks.layers.Dropout(0.2))
+    fashion_classifier.add(ks.layers.Dense(num_classes, activation='softmax'))
 
-    return classifier_model
+    return fashion_classifier
