@@ -115,62 +115,38 @@ print('Test loss for the trained encoder model:')
 print(score)
 
 
+#%%
+####################################################################################################
+# Create classifier
+####################################################################################################
 
-#######################################################
-#########Classifier from Autoencoder model############
+#%%
+model = ks.models.load_model(e_model_path)
+clf = classification.create_model(
+    model, 7, train_images.reshape((-1, 28, 28, 1)), train_labels,
+    labeled_samples_per_class
+)
+classification.save_model(clf, 'clf.tar')
 
-#Build Classifier
-classifier_model = fashion_utils.get_fashion_classifier_model(e_model_path, num_classes)
-classifier_model.compile(
-    optimizer=ks.optimizers.Adam(lr=c_learn_rate),
-    loss=ks.losses.categorical_crossentropy,
-    metrics=['accuracy']
+#%%
+####################################################################################################
+# Test classifier
+####################################################################################################
+
+clf = classification.load_model('clf.tar')
+class_names = [
+    'T-shirt', 'Trouser', 'Pullover', 'Dress',
+    'Coat', 'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Boot'
+]
+classification.test_model(
+    clf, test_images.reshape((-1, 28, 28, 1)), test_labels, class_names
 )
 
-# classifier_model.summary()
+####################################################################################################
+# Visualize results
+####################################################################################################
 
-# #Split labelled test set into test and validation
-# labeled_train_images, labeled_val_images, train_labels, val_labels = model_selection.train_test_split(
-#     train_images, train_labels, test_size=val_size, random_state=seed, stratify=train_labels
-# )
-#
-z_train = classifier_model.predict(train_images)
-centroids = np.array([
-    np.mean(
-        z_train[np.argwhere(train_labels == i)].reshape(-1, z_train.shape[1])[0:labeled_samples_per_class],
-        axis=0
-    )
-    for i in range(10)
-])
-
-#Train Classifier
-# classifier_model.fit(train_images, train_labels,
-#     # validation_data=(labeled_val_images, labeled_val_images),
-#     batch_size=batch_size,  shuffle='batch',
-#     epochs=c_epochs,
-#     verbose=1,
-#     callbacks=[
-#         ks.callbacks.ModelCheckpoint(
-#             filepath=c_model_path, monitor='val_loss',
-#             verbose=0, save_best_only=True, save_weights_only=False, mode='auto',
-#         ),
-#         ks.callbacks.EarlyStopping(
-#             monitor='val_loss', min_delta=1E-6, patience=c_patience,
-#             verbose=0, mode='auto'
-#         ),
-#         ks.callbacks.ReduceLROnPlateau(
-#             monitor='val_loss', factor=0.5, patience=10, min_delta=1E-6
-#         ),
-#     ]
-# )
-#
-# classifier_model.load_weights(c_model_path)
-#
-# #Test Model
-# new_score = model.evaluate(test_images, test_labels, verbose=0)
-# print('Test loss:', new_score[0])
-# print('Test accuracy:', new_score[1])
-
-
-#######################################
-######### Visualize Results ############
+yp_test = clf.predict(test_images.reshape((-1, 28, 28, 1)))
+visualization.visualize_confusion_matrix(
+    test_images.reshape((-1, 28, 28, 1)), test_labels, yp_test, 'fig.png'
+)
