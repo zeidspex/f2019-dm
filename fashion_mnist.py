@@ -20,6 +20,8 @@ import sklearn.model_selection as model_selection
 #######################################
 #### Variable Initalizations ##########
 model_path = 'data/model_FashionMnist.h5'
+
+##Autoencoder variables
 num_classes=10
 seed=66
 val_size=0.2
@@ -27,6 +29,8 @@ batch_size = 128
 epochs = 10
 patience = 40
 learn_rate = 0.0001
+
+##Classification variables
 
 #######################################
 #######Data Preparing##################
@@ -54,33 +58,10 @@ unlabeled_train_images, unlabeled_val_images = model_selection.train_test_split(
 print("Train images are of size: {0}, \n Train labels are of size {1}\n".format(train_images.shape,train_labels.shape))
 print("Test images are of size: {0}, \n Test labels are of size {1}\n".format(test_images.shape,test_labels.shape))
 
-#######################################
-####### Encoder Model Creation#########
-# Input layer
-model_layers = [ks.layers.InputLayer(input_shape=(28, 28,1))]
+# #######################################
+# ####### Encoder Model Creation#########
 
-# Convolutional layers (5 x (Conv + Max Pool))
-for n_filters in 64 * 2 ** np.array(range(2)):
-    model_layers.append(ks.layers.Conv2D(
-        filters=n_filters, kernel_size=(3, 3),
-        activation='relu', padding='same',
-    ))
-    model_layers.append(ks.layers.MaxPooling2D(pool_size=(2, 2)))
-
-# Dense layers
-model_layers += [
-    ks.layers.Flatten(),
-    ks.layers.Dense(7 * 7 * 128),
-    ks.layers.Reshape((7, 7, 128))
-]
-
-# Deconvolutional layers
-for n_filters in list(128 // 2 ** np.array(range(1))) + [1]:
-    model_layers.append(ks.layers.Deconvolution2D(
-        filters=n_filters, kernel_size=(3, 3),
-        activation='relu', padding='same', strides=(2, 2)
-    ))
-
+e_model_layers = fashion_utils.get_fashion_encoder_model()
 # Create and build the model from layers, print model info
 encoder_model = ks.models.Sequential(model_layers)
 encoder_model.compile(
