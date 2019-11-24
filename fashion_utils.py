@@ -4,8 +4,6 @@ import json
 import random
 import tarfile
 import itertools
-import testing
-import clustering
 import visualization
 import classification
 import numpy as np
@@ -16,6 +14,7 @@ import sklearn.model_selection as model_selection
 
 
 def get_fashion_encoder_model():
+    
     model_layers = [ks.layers.InputLayer(input_shape=(28, 28,1))]
 
     # Convolutional layers (5 x (Conv + Max Pool))
@@ -41,4 +40,3 @@ def get_fashion_encoder_model():
         ))
 
     return model_layers
-    

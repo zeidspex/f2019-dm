@@ -7,10 +7,9 @@ import json
 import random
 import tarfile
 import itertools
-import testing
-import clustering
 import visualization
 import classification
+import fashion_utils
 import numpy as np
 import keras as ks
 import tensorflow as tf
@@ -25,10 +24,10 @@ model_path = 'data/model_FashionMnist.h5'
 num_classes=10
 seed=66
 val_size=0.2
-batch_size = 128
-epochs = 10
-patience = 40
-learn_rate = 0.0001
+e_batch_size = 128
+e_epochs = 1
+e_patience = 40
+e_learn_rate = 0.0001
 
 ##Classification variables
 
@@ -63,9 +62,9 @@ print("Test images are of size: {0}, \n Test labels are of size {1}\n".format(te
 
 e_model_layers = fashion_utils.get_fashion_encoder_model()
 # Create and build the model from layers, print model info
-encoder_model = ks.models.Sequential(model_layers)
+encoder_model = ks.models.Sequential(e_model_layers)
 encoder_model.compile(
-    optimizer=ks.optimizers.Adam(lr=learn_rate),
+    optimizer=ks.optimizers.Adam(lr=e_learn_rate),
     loss=ks.losses.mean_squared_error
 )
 encoder_model.summary()
@@ -76,8 +75,8 @@ encoder_model.summary()
 # Train model
 encoder_model.fit(unlabeled_train_images, unlabeled_train_images,
     validation_data=(unlabeled_val_images, unlabeled_val_images),
-    batch_size=batch_size,  shuffle='batch',
-    epochs=epochs,
+    batch_size=e_batch_size,  shuffle='batch',
+    epochs=e_epochs,
     verbose=1,
     callbacks=[
         ks.callbacks.ModelCheckpoint(
@@ -85,7 +84,7 @@ encoder_model.fit(unlabeled_train_images, unlabeled_train_images,
             verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=5
         ),
         ks.callbacks.EarlyStopping(
-            monitor='val_loss', min_delta=0, patience=patience,
+            monitor='val_loss', min_delta=0, patience=e_patience,
             verbose=0, mode='auto'
         ),
         ks.callbacks.ReduceLROnPlateau(
