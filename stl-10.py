@@ -1,18 +1,16 @@
 #%%
+import os
 import re
 import h5py
-import json
+import pickle
 import random
 import tarfile
 import itertools
-import testing
-import clustering
 import visualization
 import classification
 import numpy as np
 import keras as ks
 import tensorflow as tf
-import sklearn.model_selection as model_selection
 
 
 # Set allow_growth to true to avoid memory hogging
@@ -22,15 +20,15 @@ ks.backend.tensorflow_backend.set_session(
 
 data_path = ''
 preprocessed_data_path = ''
-model_path = ''
+checkpoint_path = 'models/stl-10'
 classifier_path = ''
+figure_out_path = ''
 batch_size = 32
-epochs = 100
+epochs = 250
 patience = 20
 seed = 66
 learn_rate = 0.0001
-val_size = 0.2
-sample_size = 30
+labeled_samples_per_class = 10
 
 #%%
 ####################################################################################################
@@ -51,25 +49,23 @@ for name in ['unlabeled_X', 'train_X', 'test_X']:
     data[name] = data[name]\
        .reshape((-1, 3, 96, 96)).transpose((0, 3, 2, 1)).astype('float32') / 255
 
-# Split unlabeled data into training and validation sets
-ux_train, ux_val = model_selection.train_test_split(
-    data['unlabeled_X'], test_size=val_size, random_state=seed
-)
-
 # Store prepared data in HDF5 file
 # Rename train_X to x_train, and etc.
 with h5py.File(preprocessed_data_path, 'w') as out_file:
     out_file['seed'] = seed
     out_file['class_names'] = data['class_names']
-    out_file['ux_train'] = ux_train
-    out_file['ux_val'] = ux_val
+    out_file['ux_train'] = data['unlabeled_X']
 
     for name in ['train_X', 'train_y', 'test_X', 'test_y']:
         new_name = (lambda x: '_'.join([y.lower() for y in x.split('_')[::-1]]))(name)
-        out_file[new_name] = data[name]
+
+        if new_name in ['y_train', 'y_test']:
+            out_file[new_name] = data[name] - 1
+        else:
+            out_file[new_name] = data[name]
 
 # Clear the memory
-del ux_train, ux_val, data
+del data
 
 #%%
 ####################################################################################################
@@ -122,31 +118,32 @@ with h5py.File(preprocessed_data_path, 'r') as data_file:
             for i in random.sample(range(n_batches), n_batches):
                 yield tuple(itertools.repeat(data[i * batch_size:(i + 1) * batch_size], 2))
 
-    train_batches = int(np.ceil(10**5 * (1 - val_size) / batch_size))
-    val_batches = int(np.ceil(10**5 * val_size / batch_size))
+    train_batches = int(np.ceil(len(data_file['ux_train']) / batch_size))
+    val_batches = int(len(data_file['x_train']) / batch_size)
     history = model.fit_generator(
         generator=data_generator(data_file['ux_train'], train_batches, batch_size),
-        validation_data=data_generator(data_file['ux_val'], val_batches, batch_size),
+        validation_data=data_generator(data_file['x_train'], val_batches, batch_size),
         steps_per_epoch=train_batches, validation_steps=val_batches,
         epochs=epochs, verbose=1,
         callbacks=[
             ks.callbacks.ModelCheckpoint(
-                filepath='models/model_{epoch:04d}-{val_loss:.5f}.hdf5', monitor='val_loss',
-                verbose=0, save_best_only=False, save_weights_only=False, mode='auto', period=5
+                filepath='%s/model_{epoch:04d}-{val_loss:.5f}.hdf5' % checkpoint_path,
+                monitor='val_loss', verbose=1, save_best_only=False,
+                save_weights_only=False, mode='auto', period=5
             ),
             ks.callbacks.EarlyStopping(
                 monitor='val_loss', min_delta=0, patience=patience,
-                verbose=0, mode='auto'
+                verbose=1, mode='auto'
             ),
-            ks.callbacks.LearningRateScheduler(
-                (lambda epoch: learn_rate / (2**(epoch // patience)))
+            ks.callbacks.ReduceLROnPlateau(
+                monitor='val_loss', patience=patience, cooldown=1, verbose=1, factor=0.5
             )
         ]
     )
 
     # Save history
-    with open('models/history.json', 'w') as hist_file:
-        hist_file.write(json.dumps(history.history, indent=4))
+    with open('%s/history.pkl' % checkpoint_path, 'wb') as hist_file:
+        hist_file.write(pickle.dumps(history.history))
 
 ####################################################################################################
 # Create classifier
@@ -154,20 +151,11 @@ with h5py.File(preprocessed_data_path, 'r') as data_file:
 
 #%%
 with h5py.File(preprocessed_data_path, 'r') as in_file:
-
-    # Create embedding model
-    model = ks.models.load_model(model_path)
-    embedding_model = ks.models.Model(inputs=model.inputs, outputs=model.layers[12].output)
-
-    # Train K-means model
-    x_train, y_train = np.array(in_file['x_train']), np.array(in_file['y_train'])
-    z_train = embedding_model.predict(x_train)
-    kmeans = clustering.cluster_data(z_train)
-    labels = clustering.create_samples(y_train, kmeans.labels_, sample_size)
-    mappings = clustering.map_clusters(labels, False)
-
-    # Create and save classifier from embeddings model and K-means model
-    clf = classification.Classifier(embedding_model, kmeans, mappings)
+    model = ks.models.load_model('%s/%s' % (checkpoint_path, os.listdir(checkpoint_path)[-1]))
+    clf = classification.create_model(
+        model, 12, np.array(in_file['x_train']), np.array(in_file['y_train']),
+        labeled_samples_per_class
+    )
     classification.save_model(clf, classifier_path)
 
 ####################################################################################################
@@ -177,13 +165,16 @@ with h5py.File(preprocessed_data_path, 'r') as in_file:
 with h5py.File(preprocessed_data_path, 'r') as in_file:
     clf = classification.load_model(classifier_path)
     class_names = bytes(in_file['class_names']).decode('UTF-8').splitlines()
-    x_test, y_test = np.array(in_file['x_test']), np.array(in_file['y_test'])
-    testing.test_classifier(clf, x_test, y_test, class_names)
+    classification.test_model(
+        clf, np.array(in_file['x_test']), np.array(in_file['y_test']), class_names
+    )
 
 ####################################################################################################
 # Visualize results
 ####################################################################################################
 
 with h5py.File(preprocessed_data_path, 'r') as in_file:
-    yp_test = clf.predict(x_test)
-    visualization.visualize_confusion_matrix(x_test, y_test, yp_test, 'figure.png')
+    yp_test = clf.predict(np.array(in_file['x_test']))
+    visualization.visualize_confusion_matrix(
+        np.array(in_file['x_test']), np.array(in_file['y_test']), yp_test, figure_out_path
+    )
