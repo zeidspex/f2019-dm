@@ -12,13 +12,14 @@ import tensorflow as tf
 import sklearn.model_selection as model_selection
 
 encoding_size = 15
+cnn_layers = 32
 
 def get_fashion_encoder_model():
 
     model_layers = [ks.layers.InputLayer(input_shape=(28, 28,1))]
 
     # Convolutional layers (5 x (Conv + Max Pool))
-    for n_filters in 32 * 2 ** np.array(range(2)):
+    for n_filters in cnn_layers * 2 ** np.array(range(2)):
         model_layers.append(ks.layers.Conv2D(
             filters=n_filters, kernel_size=(3, 3),
             activation='relu', padding='same',
@@ -28,9 +29,9 @@ def get_fashion_encoder_model():
     # Dense layers
     model_layers += [
         ks.layers.Flatten(),
-        ks.layers.Dense(392, activation='relu'),
-        ks.layers.Dense(196, activation='relu'),
-        ks.layers.Reshape((7, 7, 4))
+        ks.layers.Dense(25, activation='relu'),
+        ks.layers.Dense(7*7*64, activation='relu'),
+        ks.layers.Reshape((7, 7, 64))
     ]
 
     # Deconvolutional layers
@@ -60,7 +61,7 @@ def get_fashion_classifier_model(model_path, num_classes):
     fashion_class_model.add(ks.layers.Dense(40, activation='relu'))
     fashion_class_model.add(ks.layers.Dropout(0.2))
     fashion_class_model.add(ks.layers.Dense(num_classes, activation='softmax'))
-    
+
 
 
     return fashion_class_model

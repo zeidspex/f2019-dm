@@ -19,7 +19,7 @@ import warnings
 #######################################
 #### Variable Initalizations ##########
 
-batch_size = 128
+batch_size = 32
 num_classes=10
 seed=66
 val_size=0.2
