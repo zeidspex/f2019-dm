@@ -69,8 +69,8 @@ for n_filters in 64 * 2 ** np.array(range(2)):
 # Dense layers
 layers += [
     ks.layers.Flatten(),
-    ks.layers.Dense(25),
-    ks.layers.Dense(3136),
+    ks.layers.Dense(25, activation='relu'),
+    ks.layers.Dense(3136, activation='relu'),
     ks.layers.Reshape((7, 7, 64))
 ]
 
