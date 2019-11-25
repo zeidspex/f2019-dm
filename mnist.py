@@ -59,7 +59,7 @@ for mapping in file_mappings:
 layers = [ks.layers.InputLayer(input_shape=(28, 28, 1))]
 
 # Convolutional layers (2 x (Conv + Max Pool))
-for n_filters in 64 * 2 ** np.array(range(2)):
+for n_filters in 32 * 2 ** np.array(range(2)):
     layers.append(ks.layers.Conv2D(
         filters=n_filters, kernel_size=(3, 3),
         activation='relu', padding='same',
