@@ -125,16 +125,7 @@ with open('%s/history.pkl' % checkpoint_path, 'wb') as hist_file:
 #%%
 # Create embedding model
 model = ks.models.load_model('%s/%s' % (checkpoint_path, os.listdir(checkpoint_path)[-1]))
-embedding_model = ks.models.Model(inputs=model.inputs, outputs=model.layers[6].output)
-
-# Train K-means model
-z_train = embedding_model.predict(data['x_train'])
-kmeans = clustering.cluster_data(z_train)
-labels = clustering.create_samples(data['y_train'], kmeans.labels_, sample_size)
-mappings = clustering.map_clusters(labels, False)
-
-# Create and save classifier from embeddings model and K-means model
-clf = classification.Classifier(embedding_model, kmeans, mappings)
+clf = classification.create_model(model, 6, data['x_train'], data['y_train'], sample_size)
 classification.save_model(clf, classifier_path)
 
 ####################################################################################################
@@ -150,7 +141,3 @@ classification.test_model(clf, data['x_test'], data['y_test'], data['class_names
 
 yp_test = clf.predict(data['x_test'])
 visualization.visualize_confusion_matrix(data['x_test'], data['y_test'], yp_test, figure_out_path)
-
-yp_test = clf.predict(x_test)
-x_test_viz = (np.concatenate([x_test for _ in range(3)], axis=-1))
-visualization.visualize_confusion_matrix(x_test_viz, y_test, yp_test, figure_out_path)
