@@ -27,7 +27,7 @@ labeled_samples_per_class = 9
 
 ##Autoencoder variables
 e_model_path = 'data/model_FashionMnist.h5'
-e_epochs = 5
+e_epochs = 250
 e_patience = 40
 e_learn_rate = 0.0001
 
