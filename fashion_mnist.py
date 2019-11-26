@@ -28,7 +28,7 @@ batch_size = 32
 num_classes=10
 seed=66
 val_size=0.2
-labeled_samples_per_class = 9
+labeled_samples_per_class = 10
 
 ##Autoencoder variables
 e_model_path = 'data/model_FashionMnist.h5'
