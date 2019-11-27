@@ -133,7 +133,7 @@ test_labels = np.array([np.argmax(x) for x in test_labels])
 #%%
 model = ks.models.load_model(e_model_path)
 clf = classification.create_model(
-    model, 7, train_images.reshape((-1, 28, 28, 1)), train_labels,
+    model, 6, train_images.reshape((-1, 28, 28, 1)), train_labels,
     labeled_samples_per_class
 )
 classification.save_model(clf, classifier_path)
