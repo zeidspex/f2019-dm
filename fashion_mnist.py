@@ -123,6 +123,9 @@ print(score)
 
 
 #%%
+train_labels = np.array([np.argmax(x) for x in train_labels])
+test_labels = np.array([np.argmax(x) for x in test_labels])
+
 ####################################################################################################
 # Create classifier
 ####################################################################################################
