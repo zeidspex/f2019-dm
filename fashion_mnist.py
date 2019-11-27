@@ -45,6 +45,8 @@ c_learn_rate = 0.001
 np.seterr(divide='ignore', invalid='ignore')
 x = np.ones((1000, 1000)) * np.nan
 
+classifier_path = r'models/fashion_mnist/clf.tar'
+
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", category=RuntimeWarning)
     foo = np.nanmean(x, axis=1)
@@ -131,14 +133,14 @@ clf = classification.create_model(
     model, 7, train_images.reshape((-1, 28, 28, 1)), train_labels,
     labeled_samples_per_class
 )
-classification.save_model(clf, 'clf.tar')
+classification.save_model(clf, classifier_path)
 
 #%%
 ####################################################################################################
 # Test classifier
 ####################################################################################################
 
-clf = classification.load_model('clf.tar')
+clf = classification.load_model(classifier_path)
 class_names = [
     'T-shirt', 'Trouser', 'Pullover', 'Dress',
     'Coat', 'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Boot'
