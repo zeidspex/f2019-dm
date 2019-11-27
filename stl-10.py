@@ -23,6 +23,7 @@ preprocessed_data_path = ''
 checkpoint_path = 'models/stl-10'
 classifier_path = ''
 figure_out_path = ''
+results_out_path = ''
 batch_size = 32
 epochs = 250
 patience = 20
@@ -166,7 +167,7 @@ with h5py.File(preprocessed_data_path, 'r') as in_file:
     clf = classification.load_model(classifier_path)
     class_names = bytes(in_file['class_names']).decode('UTF-8').splitlines()
     classification.test_model(
-        clf, np.array(in_file['x_test']), np.array(in_file['y_test']), class_names
+        clf, np.array(in_file['x_test']), np.array(in_file['y_test']), class_names, results_out_path
     )
 
 ####################################################################################################

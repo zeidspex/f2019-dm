@@ -47,6 +47,7 @@ x = np.ones((1000, 1000)) * np.nan
 
 classifier_path = r'models/fashion_mnist/clf.tar'
 figure_out_path = r'figures/fashion-mnist-confusion.png'
+results_out_path = 'results/fashion-mnist.csv'
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", category=RuntimeWarning)
@@ -150,7 +151,7 @@ class_names = [
     'Coat', 'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Boot'
 ]
 classification.test_model(
-    clf, test_images.reshape((-1, 28, 28, 1)), test_labels, class_names
+    clf, test_images.reshape((-1, 28, 28, 1)), test_labels, class_names, results_out_path
 )
 
 ####################################################################################################
