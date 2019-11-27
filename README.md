@@ -14,7 +14,7 @@ TODO
 
 ### Fashion MNIST Results
 
-TODO
+![fashion-mnist-confusion](figures/fashion-mnist-confusion.png)
 
 ### STL-10 Results
 
