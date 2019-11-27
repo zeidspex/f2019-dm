@@ -46,6 +46,7 @@ np.seterr(divide='ignore', invalid='ignore')
 x = np.ones((1000, 1000)) * np.nan
 
 classifier_path = r'models/fashion_mnist/clf.tar'
+figure_out_path = r'figures/fashion-mnist-confusion.png'
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", category=RuntimeWarning)
@@ -158,5 +159,5 @@ classification.test_model(
 
 yp_test = clf.predict(test_images.reshape((-1, 28, 28, 1)))
 visualization.visualize_confusion_matrix(
-    test_images.reshape((-1, 28, 28, 1)), test_labels, yp_test, 'fig.png'
+    test_images.reshape((-1, 28, 28, 1)), test_labels, yp_test, figure_out_path
 )
