@@ -4,7 +4,8 @@ import tensorflow as tf
 from keras.datasets import mnist
 import copy
 
-encoding_size = 98
+encoding_size = 36
+dense_size = 64
 conv_encoder = 16
 conv_decoder = 16
 
@@ -38,13 +39,14 @@ def _get_shared_layers():
         shared_layers.append(ks.layers.MaxPooling2D(pool_size=(2, 2)))
 
     shared_layers.append(ks.layers.Conv2D(
-        filters=32, kernel_size=(3, 3),
+        filters=dense_size, kernel_size=(3, 3),
         padding='same', use_bias=False,
     ))
     shared_layers.append(ks.layers.BatchNormalization())
     shared_layers.append(ks.layers.Activation('relu'))
+
     shared_layers.append(ks.layers.Conv2D(
-        filters=8, kernel_size=(3, 3),
+        filters=dense_size, kernel_size=(3, 3),
         padding='same', use_bias=False,
     ))
     shared_layers.append(ks.layers.BatchNormalization())
@@ -53,9 +55,6 @@ def _get_shared_layers():
     # Dense layers
     shared_layers += [
         ks.layers.Flatten(),
-        # ks.layers.GlobalAveragePooling2D(),
-        # ks.layers.Dense(392, activation='relu'),
-        # ks.layers.Dense(196, activation='relu'),
         ks.layers.Dense(encoding_size, use_bias=False),
         ks.layers.BatchNormalization(),
         ks.layers.Activation('relu'),
@@ -68,16 +67,14 @@ def _get_encoder_layers():
     encoder_layers = _get_shared_layers()
 
     encoder_layers += [
-        # ks.layers.Dense(196, activation='relu'),
-        # ks.layers.Dense(392, activation='relu'),
-        ks.layers.Dense(7 * 7 * 8, use_bias=False),
+        ks.layers.Dense(7 * 7 * dense_size, use_bias=False),
         ks.layers.BatchNormalization(),
         ks.layers.Activation('relu'),
-        ks.layers.Reshape((7, 7, 8))
+        ks.layers.Reshape((7, 7, dense_size))
     ]
 
     encoder_layers.append(ks.layers.Deconvolution2D(
-        filters=32, kernel_size=(3, 3),
+        filters=dense_size, kernel_size=(3, 3),
         padding='same', use_bias=False,
     ))
     encoder_layers.append(ks.layers.BatchNormalization())
