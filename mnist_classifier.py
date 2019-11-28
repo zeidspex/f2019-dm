@@ -72,7 +72,7 @@ with h5py.File('data/mnist.hdf5', 'r') as data_file:
             ks.callbacks.ReduceLROnPlateau(
                 monitor='val_loss', factor=0.5, patience=10, min_delta=1E-6
             ),
-        ]          
+        ]
     )
 
     model.load_weights(model_path)	# Load the model from the saved checkpoint
