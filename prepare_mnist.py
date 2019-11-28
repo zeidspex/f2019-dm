@@ -40,7 +40,7 @@ data = {}
 
 # Split labeled data into unlabeled data and labedled data sets
 ux_train, lx_train, _, ly_train = train_test_split(x_train, y_train, 
-    test_size=50, stratify=y_train)
+    test_size=100, stratify=y_train)
 
 # Split unlabeled data into training and validation sets
 ux_train, ux_val = train_test_split(

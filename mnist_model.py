@@ -16,6 +16,10 @@ num_classes = 10
 img_rows, img_cols, img_channels = 28, 28, 1
 
 
+def get_embeddings_index():
+    return len(_get_shared_layers()) - 1
+
+
 def _get_shared_layers():
     shared_layers = []
 
@@ -99,11 +103,12 @@ def _get_encoder_layers():
     return encoder_layers
 
 
-def get_encoder():
+def get_encoder(weights=False):
     # Create and build the model from layers, print model info
     encoder_model = ks.models.Sequential(_get_encoder_layers())
 
-    # encoder_model.load_weights(model_path)
+    if weights:
+        encoder_model.load_weights(model_path)
 
     return encoder_model
 
@@ -119,23 +124,23 @@ def get_classifier():
         layer.trainable = False
         classifier_model.add(layer)
 
-    classifier_model.add(ks.layers.Dropout(0.2))
-    classifier_model.add(ks.layers.Deconvolution2D(
-        filters=8, kernel_size=(3, 3),
-        padding='same', use_bias=False,
-    ))
-    classifier_model.add(ks.layers.BatchNormalization())
-    classifier_model.add(ks.layers.Activation('relu'))
+    # classifier_model.add(ks.layers.Dropout(0.2))
+    # classifier_model.add(ks.layers.Deconvolution2D(
+    #     filters=8, kernel_size=(3, 3),
+    #     padding='same', use_bias=False,
+    # ))
+    # classifier_model.add(ks.layers.BatchNormalization())
+    # classifier_model.add(ks.layers.Activation('relu'))
 
-    classifier_model.add(ks.layers.Dropout(0.2))
-    classifier_model.add(ks.layers.Deconvolution2D(
-        filters=8, kernel_size=(3, 3),
-        padding='same', use_bias=False,
-    ))
-    classifier_model.add(ks.layers.BatchNormalization())
-    classifier_model.add(ks.layers.Activation('relu'))
+    # classifier_model.add(ks.layers.Dropout(0.2))
+    # classifier_model.add(ks.layers.Deconvolution2D(
+    #     filters=8, kernel_size=(3, 3),
+    #     padding='same', use_bias=False,
+    # ))
+    # classifier_model.add(ks.layers.BatchNormalization())
+    # classifier_model.add(ks.layers.Activation('relu'))
 
-    classifier_model.add(ks.layers.Flatten())
+    # classifier_model.add(ks.layers.Flatten())
     # classifier_model.add(ks.layers.Dropout(0.2))
     # classifier_model.add(ks.layers.Dense(196, use_bias=False))
     # classifier_model.add(ks.layers.BatchNormalization())

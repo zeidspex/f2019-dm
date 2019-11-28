@@ -90,7 +90,7 @@ with h5py.File('data/mnist.hdf5', 'r') as data_file:
     model.fit_generator(train_generator,
         validation_data=valid_generator,
         steps_per_epoch = 20, 
-        validation_steps = 5,
+        validation_steps = 20,
         epochs=epochs,
         verbose=1,
         callbacks=[
